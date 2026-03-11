@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VANCROX — Admin Panel</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+    :root {
+      --bg:#0a0e1a; --sidebar-bg:#060b18; --card:#0d1425; --border:rgba(30,80,180,0.25);
+      --blue:#3d8eff; --blue-dark:#1a6bff; --green:#00e676; --red:#ff4444; --gold:#ffd740;
+      --text:#e0eaff; --text2:#6a8cc0; --text3:#2d4a7a;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+    .top-bar{background:var(--sidebar-bg);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .logo-wrap{display:flex;align-items:center;gap:12px;}
+    .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#1a6bff,#0a3fa0);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.5rem;font-weight:900;color:#fff;text-align:center;line-height:1.2;}
+    .logo-name{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;}
+    .logo-sub{font-size:0.7rem;color:var(--text2);}
+    .btn-logout-top{background:none;border:1px solid var(--red);color:var(--red);padding:6px 16px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;font-size:0.85rem;transition:all 0.2s;}
+    .btn-logout-top:hover{background:rgba(255,68,68,0.1);}
+    .layout{display:flex;flex:1;}
+    .sidebar{width:220px;min-width:220px;background:var(--sidebar-bg);border-right:1px solid var(--border);padding:16px 0;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;}
+    .sidebar-section{padding:0 16px;margin:14px 0 4px;font-size:0.62rem;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;}
+    .sidebar-item{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;color:var(--text2);font-size:0.9rem;font-weight:600;transition:all 0.2s;border-left:3px solid transparent;}
+    .sidebar-item:hover{background:rgba(26,107,255,0.07);color:var(--text);}
+    .sidebar-item.active{background:rgba(26,107,255,0.12);color:var(--blue);border-left-color:var(--blue);}
+    .sidebar-item svg{width:17px;height:17px;flex-shrink:0;}
+    .badge-count{margin-left:auto;background:var(--red);color:#fff;border-radius:10px;padding:1px 7px;font-size:0.62rem;}
+    .content{flex:1;padding:24px;overflow-x:hidden;min-width:0;}
+    .page{display:none;}.page.active{display:block;}
+    .page-title{font-family:'Orbitron',monospace;font-size:1.1rem;margin-bottom:20px;}
+    .overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+    @media(max-width:900px){.overview-grid{grid-template-columns:repeat(2,1fr);}}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+    .stat-label{font-size:0.72rem;color:var(--text2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;}
+    .stat-value{font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:700;}
+    .green{color:var(--green);}.gold{color:var(--gold);}.blue{color:var(--blue);}.red{color:var(--red);}
+    .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+    .table-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .table-header h3{font-size:0.95rem;font-weight:700;}
+    .overflow-x{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    th{padding:11px 14px;text-align:left;font-size:0.7rem;color:var(--text2);letter-spacing:0.07em;text-transform:uppercase;border-bottom:1px solid var(--border);background:rgba(10,15,30,0.5);}
+    td{padding:11px 14px;font-size:0.86rem;border-bottom:1px solid rgba(30,80,180,0.08);vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(26,107,255,0.04);}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-weight:600;}
+    .badge-green{background:rgba(0,230,118,0.12);color:var(--green);border:1px solid rgba(0,230,118,0.25);}
+    .badge-red{background:rgba(255,68,68,0.12);color:var(--red);border:1px solid rgba(255,68,68,0.25);}
+    .badge-yellow{background:rgba(255,215,64,0.12);color:var(--gold);border:1px solid rgba(255,215,64,0.25);}
+    .badge-blue{background:rgba(61,142,255,0.12);color:var(--blue);border:1px solid rgba(61,142,255,0.25);}
+    .btn{padding:7px 13px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:none;}
+    .btn-approve{background:linear-gradient(135deg,#00b36b,#007a49);color:#fff;}
+    .btn-reject{background:transparent;border:1px solid var(--red)!important;color:var(--red);}
+    .btn-view{background:rgba(61,142,255,0.15);border:1px solid var(--blue);color:var(--blue);}
+    .btn-suspend{background:rgba(255,215,64,0.12);border:1px solid var(--gold);color:var(--gold);}
+    .btn-block{background:rgba(255,68,68,0.12);border:1px solid var(--red);color:var(--red);}
+    .btn-activate{background:rgba(0,230,118,0.12);border:1px solid var(--green);color:var(--green);}
+    .btn-primary{background:linear-gradient(135deg,var(--blue-dark),#0a3fa0);border:1px solid var(--blue);color:#fff;}
+    .form-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:20px;}
+    .form-group{margin-bottom:14px;}
+    .form-group label{display:block;font-size:0.75rem;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em;}
+    .form-group input,.form-group select,.form-group textarea{width:100%;background:rgba(5,10,25,0.8);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:9px;font-family:'Rajdhani',sans-serif;font-size:0.93rem;outline:none;transition:border-color 0.2s;}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);}
+    .form-group select option{background:#060b18;}
+    .notif-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+    .notif-content h4{font-size:0.95rem;margin-bottom:4px;}
+    .notif-content p{font-size:0.82rem;color:var(--text2);line-height:1.4;}
+    .notif-content img{height:50px;border-radius:6px;margin-top:6px;}
+    .chat-box{height:280px;overflow-y:auto;background:rgba(5,10,25,0.5);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;}
+    .msg-bubble{padding:9px 13px;border-radius:11px;font-size:0.87rem;line-height:1.4;max-width:75%;}
+    .msg-admin{align-self:flex-end;}.msg-user{align-self:flex-start;}
+    .msg-admin .msg-bubble{background:rgba(26,107,255,0.25);border:1px solid rgba(61,142,255,0.2);}
+    .msg-user .msg-bubble{background:rgba(10,20,50,0.8);border:1px solid var(--border);}
+    .msg-time{font-size:0.63rem;color:var(--text3);margin-top:3px;text-align:right;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+    .modal-overlay.active{display:flex;}
+    .modal{background:#0d1425;border:1px solid rgba(61,142,255,0.4);border-radius:16px;padding:24px;width:100%;max-width:480px;position:relative;max-height:90vh;overflow-y:auto;animation:mIn 0.25s ease;}
+    @keyframes mIn{from{opacity:0;transform:scale(0.93)}to{opacity:1;transform:scale(1)}}
+    .modal-title{font-family:'Orbitron',monospace;font-size:1rem;color:var(--blue);margin-bottom:16px;}
+    .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text2);font-size:1.3rem;cursor:pointer;}
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#0d1425;border:1px solid rgba(61,142,255,0.4);color:var(--text);padding:11px 22px;border-radius:10px;opacity:0;transition:all 0.3s;z-index:9999;pointer-events:none;font-size:0.87rem;}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    #toast.success{border-color:var(--green);}#toast.error{border-color:var(--red);}
+    .no-data{text-align:center;padding:40px;color:var(--text3);font-size:0.9rem;}
+    ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+    .action-btns{display:flex;gap:6px;flex-wrap:wrap;}
+    .detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.9rem;}
+    .detail-row:last-child{border-bottom:none;}
+    .detail-row span:first-child{color:var(--text2);}
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="logo-wrap">
+    <div class="logo-icon">VAN<br>CROX</div>
+    <div><div class="logo-name">VANCROX</div><div class="logo-sub">System Control Panel</div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <span style="font-size:0.85rem;color:var(--text2);">System Team</span>
+    <button class="btn-logout-top" onclick="adminLogout()">Logout</button>
+  </div>
+</div>
+
+<!-- LOGIN PAGE -->
+<div id="login-page" style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 57px);">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px;width:100%;max-width:360px;">
+    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;margin-bottom:24px;color:var(--blue);text-align:center;">Admin Login</div>
+    <div class="form-group"><label>Username</label><input type="text" id="admin-username" placeholder="admin"/></div>
+    <div class="form-group"><label>Password</label><input type="password" id="admin-password" placeholder="Password" onkeydown="if(event.key==='Enter')adminLogin()"/></div>
+    <button class="btn btn-primary" style="width:100%;padding:12px;font-size:1rem;" onclick="adminLogin()">Login</button>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="layout" id="main-layout" style="display:none;">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">Overview</div>
+    <div class="sidebar-item active" id="nav-overview" onclick="showPage('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Overview
+    </div>
+    <div class="sidebar-section">User Management</div>
+    <div class="sidebar-item" id="nav-investors" onclick="showPage('investors')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Investors
+    </div>
+    <div class="sidebar-item" id="nav-traders" onclick="showPage('traders')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+      Traders
+    </div>
+    <div class="sidebar-section">Operations</div>
+    <div class="sidebar-item" id="nav-approvals" onclick="showPage('approvals')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>
+      Pending Approvals <span class="badge-count" id="pending-badge">0</span>
+    </div>
+    <div class="sidebar-item" id="nav-notifications" onclick="showPage('notifications')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Notifications
+    </div>
+    <div class="sidebar-item" id="nav-tickets" onclick="showPage('tickets')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Support Tickets
+    </div>
+    <div class="sidebar-section">System</div>
+    <div class="sidebar-item" id="nav-addresses" onclick="showPage('addresses')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg>
+      Address Change
+    </div>
+    <div class="sidebar-item" id="nav-reports" onclick="showPage('reports')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </div>
+    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+      <div class="sidebar-item" style="color:var(--red);" onclick="adminLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <div class="page-title">System Overview</div>
+      <div class="overview-grid">
+        <div class="stat-card"><div class="stat-label">Total Investors</div><div class="stat-value blue" id="ov-investors">0</div></div>
+        <div class="stat-card"><div class="stat-label">Total Traders</div><div class="stat-value" id="ov-traders">0</div></div>
+        <div class="stat-card"><div class="stat-label">Pending Requests</div><div class="stat-value red" id="ov-pending">0</div></div>
+        <div class="stat-card"><div class="stat-label">Total Deposits</div><div class="stat-value green" id="ov-deposits">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Total Withdrawals</div><div class="stat-value gold" id="ov-withdrawals">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Open Tickets</div><div class="stat-value" id="ov-tickets">0</div></div>
+      </div>
+    </div>
+
+    <!-- INVESTORS -->
+    <div class="page" id="page-investors">
+      <div class="page-title">Investor Management</div>
+      <div class="table-wrap"><div class="table-header"><h3>All Investors</h3></div>
+        <div class="overflow-x"><table>
+          <thead><tr><th>Name</th><th>UID</th><th>Contact</th><th>Balance</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="investors-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- TRADERS -->
+    <div class="page" id="page-traders">
+      <div class="page-title">Trader Management</div>
+      <div class="table-wrap"><div class="table-header"><h3>All Traders</h3></div>
+        <div class="overflow-x"><table>
+          <thead><tr><th>Name</th><th>TID</th><th>Verification</th><th>Security</th><th>Earnings</th><th>Level</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="traders-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- PENDING APPROVALS -->
+    <div class="page" id="page-approvals">
+      <div class="page-title">Pending Approvals</div>
+      <div class="table-wrap"><div class="table-header"><h3>Transactions (Deposits & Withdrawals)</h3></div>
+        <div class="overflow-x"><table>
+          <thead><tr><th>User</th><th>ID</th><th>Role</th><th>Type</th><th>Amount</th><th>Network</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody id="approvals-tbody"></tbody>
+        </table></div>
+      </div>
+      <div class="table-wrap" style="margin-top:20px;"><div class="table-header"><h3>Trader Verifications</h3></div>
+        <div class="overflow-x"><table>
+          <thead><tr><th>Name</th><th>TID</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="verifications-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="page" id="page-notifications">
+      <div class="page-title">Notifications</div>
+      <div class="form-card">
+        <div style="font-weight:700;margin-bottom:16px;">Send New Notification to All Investors</div>
+        <div class="form-group"><label>Title</label><input type="text" id="notif-title" placeholder="Notification title"/></div>
+        <div class="form-group"><label>Message</label><textarea id="notif-message" rows="3" placeholder="Write message..."></textarea></div>
+        <div class="form-group"><label>Image (Optional)</label><input type="file" id="notif-image" accept="image/*"/></div>
+        <button class="btn btn-primary" onclick="sendNotification()">Send Notification</button>
+      </div>
+      <div id="notifications-list"></div>
+    </div>
+
+    <!-- SUPPORT TICKETS -->
+    <div class="page" id="page-tickets">
+      <div class="page-title">Support Tickets</div>
+      <div class="table-wrap"><div class="table-header"><h3>Open Tickets</h3></div>
+        <div class="overflow-x"><table>
+          <thead><tr><th>User</th><th>ID</th><th>Role</th><th>Last Message</th><th>Time</th><th>Action</th></tr></thead>
+          <tbody id="tickets-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ADDRESS CHANGE -->
+    <div class="page" id="page-addresses">
+      <div class="page-title">Wallet Address Management</div>
+      <div class="form-card" style="max-width:480px;">
+        <div style="font-weight:700;margin-bottom:16px;">Platform Deposit Wallet Addresses</div>
+        <div class="form-group"><label>ERC20 Address</label><input type="text" id="addr-erc20" placeholder="0x..."/></div>
+        <div class="form-group"><label>TRC20 Address</label><input type="text" id="addr-trc20" placeholder="T..."/></div>
+        <div class="form-group"><label>BEP20 Address</label><input type="text" id="addr-bep20" placeholder="0x..."/></div>
+        <button class="btn btn-primary" onclick="saveAddresses()">Update Addresses</button>
+        <p style="font-size:0.77rem;color:var(--text2);margin-top:10px;">Changes apply instantly across the entire platform.</p>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="page" id="page-reports">
+      <div class="page-title">Reports</div>
+      <div id="reports-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- INVESTOR DETAIL MODAL -->
+<div class="modal-overlay" id="investorModal">
+  <div class="modal">
+    <div class="modal-title">Investor Details</div>
+    <button class="modal-close" onclick="closeModal('investorModal')">✕</button>
+    <div id="investor-detail"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-activate" onclick="updateInvestorStatus('active')">Activate</button>
+      <button class="btn btn-suspend" onclick="updateInvestorStatus('suspended')">Suspend</button>
+      <button class="btn btn-block" onclick="updateInvestorStatus('blocked')">Block</button>
+    </div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+      <div style="font-weight:700;margin-bottom:10px;font-size:0.9rem;">Adjust Balance</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="number" id="balance-adjust-amount" placeholder="Amount" style="flex:1;min-width:90px;background:rgba(5,10,25,0.8);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:'Rajdhani',sans-serif;outline:none;"/>
+        <button class="btn btn-approve" onclick="adjustBalance('add')">+ Add</button>
+        <button class="btn btn-reject" onclick="adjustBalance('subtract')">- Deduct</button>
+        <button class="btn btn-view" onclick="adjustBalance('set')">= Set</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WITHDRAWAL ADDRESS MODAL -->
+<div class="modal-overlay" id="withdrawAddrModal">
+  <div class="modal">
+    <div class="modal-title">User Withdrawal Address</div>
+    <button class="modal-close" onclick="closeModal('withdrawAddrModal')">✕</button>
+    <div id="withdraw-addr-content"></div>
+  </div>
+</div>
+
+<!-- TRADER HISTORY MODAL -->
+<div class="modal-overlay" id="traderHistoryModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title">Trading History Verification</div>
+    <button class="modal-close" onclick="closeModal('traderHistoryModal')">✕</button>
+    <div id="trader-history-images" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;max-height:400px;overflow-y:auto;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-approve" style="flex:1;padding:12px;" onclick="verifyTrader('approve')">✓ Approve</button>
+      <button class="btn btn-reject" style="flex:1;padding:12px;" onclick="verifyTrader('reject')">✗ Reject</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUPPORT CHAT MODAL -->
+<div class="modal-overlay" id="chatModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-title">Support Chat</div>
+    <button class="modal-close" onclick="closeModal('chatModal')">✕</button>
+    <div id="chat-info" style="font-size:0.82rem;color:var(--text2);margin-bottom:12px;"></div>
+    <div class="chat-box" id="chat-box"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <input type="text" id="admin-reply-msg" placeholder="Type reply..." style="flex:1;background:rgba(5,10,25,0.8);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:9px;font-family:'Rajdhani',sans-serif;outline:none;" onkeydown="if(event.key==='Enter')sendAdminReply()"/>
+      <button class="btn btn-primary" onclick="sendAdminReply()">Send</button>
+    </div>
+    <button class="btn" style="background:rgba(0,230,118,0.1);border:1px solid var(--green);color:var(--green);width:100%;padding:10px;" onclick="resolveTicket()">✓ Mark as Resolved</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const AAPI = '/api/admin';
+let adminToken = localStorage.getItem('vancrox_admin_token');
+let currentInvestorId = null;
+let currentTraderId = null;
+let currentTicketId = null;
+
+function showToast(msg, type='info'){
+  const t=document.getElementById('toast');
+  t.className=`show ${type}`;t.textContent=msg;
+  setTimeout(()=>t.className='',3200);
+}
+function fmt(d){if(!d)return'-';return new Date(d).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function fmtAmt(a){return parseFloat(a||0).toFixed(2);}
+
+async function api(method, endpoint, data=null, isForm=false){
+  const h={Authorization:`Bearer ${adminToken}`};
+  if(!isForm)h['Content-Type']='application/json';
+  const opts={method,headers:h};
+  if(data)opts.body=isForm?data:JSON.stringify(data);
+  const res=await fetch(AAPI+endpoint,opts);
+  return res.json();
+}
+
+window.onload=()=>{
+  if(adminToken){showLayout();loadOverview();}
+};
+
+async function adminLogin(){
+  const username=document.getElementById('admin-username').value.trim();
+  const password=document.getElementById('admin-password').value;
+  if(!username||!password)return showToast('Fill all fields','error');
+  const res=await fetch('/api/auth/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+  const data=await res.json();
+  if(data.success){
+    adminToken=data.token;
+    localStorage.setItem('vancrox_admin_token',adminToken);
+    showLayout();loadOverview();
+  } else showToast(data.message||'Login failed','error');
+}
+
+function showLayout(){
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('main-layout').style.display='flex';
+}
+
+function adminLogout(){
+  localStorage.removeItem('vancrox_admin_token');
+  adminToken=null;
+  document.getElementById('main-layout').style.display='none';
+  document.getElementById('login-page').style.display='flex';
+}
+
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const nav=document.getElementById('nav-'+page);
+  if(nav)nav.classList.add('active');
+  const loaders={overview:loadOverview,investors:loadInvestors,traders:loadTraders,approvals:loadApprovals,notifications:loadNotifications,tickets:loadTickets,addresses:loadAddresses,reports:loadReports};
+  if(loaders[page])loaders[page]();
+}
+
+// OVERVIEW
+async function loadOverview(){
+  const res=await api('GET','/overview');
+  if(!res.success)return;
+  const s=res.stats;
+  document.getElementById('ov-investors').textContent=s.totalInvestors;
+  document.getElementById('ov-traders').textContent=s.totalTraders;
+  document.getElementById('ov-pending').textContent=s.pendingRequests;
+  document.getElementById('ov-deposits').textContent='$'+fmtAmt(s.totalDeposits);
+  document.getElementById('ov-withdrawals').textContent='$'+fmtAmt(s.totalWithdrawals);
+  document.getElementById('ov-tickets').textContent=s.openTickets;
+  document.getElementById('pending-badge').textContent=s.pendingRequests;
+}
+
+// INVESTORS
+async function loadInvestors(){
+  const res=await api('GET','/investors');
+  const tbody=document.getElementById('investors-tbody');
+  if(!res.success||!res.investors.length){tbody.innerHTML='<tr><td colspan="6" class="no-data">No investors yet</td></tr>';return;}
+  tbody.innerHTML=res.investors.map(u=>`
+    <tr>
+      <td>${u.name}</td>
+      <td><code style="color:var(--blue);font-size:0.78rem;">${u.uid}</code></td>
+      <td style="color:var(--text2);font-size:0.8rem;">${u.email||u.mobile||'-'}</td>
+      <td style="color:var(--green);font-weight:700;">$${fmtAmt(u.balance)}</td>
+      <td><span class="badge ${u.status==='active'?'badge-green':u.status==='suspended'?'badge-yellow':'badge-red'}">${u.status}</span></td>
+      <td><button class="btn btn-view" onclick="openInvestorModal('${u._id}','${u.name}','${u.uid}',${u.balance},'${u.status}','${u.email||u.mobile||''}')">View</button></td>
+    </tr>
+  `).join('');
+}
+
+function openInvestorModal(id,name,uid,balance,status,contact){
+  currentInvestorId=id;
+  document.getElementById('investor-detail').innerHTML=`
+    <div class="detail-row"><span>Name</span><strong>${name}</strong></div>
+    <div class="detail-row"><span>UID</span><code style="color:var(--blue)">${uid}</code></div>
+    <div class="detail-row"><span>Contact</span><span>${contact}</span></div>
+    <div class="detail-row"><span>Balance</span><strong style="color:var(--green)">$${fmtAmt(balance)}</strong></div>
+    <div class="detail-row"><span>Status</span><span class="badge ${status==='active'?'badge-green':status==='suspended'?'badge-yellow':'badge-red'}">${status}</span></div>
+  `;
+  document.getElementById('balance-adjust-amount').value='';
+  openModal('investorModal');
+}
+
+async function updateInvestorStatus(status){
+  const res=await api('PUT',`/investor/${currentInvestorId}/status`,{status});
+  if(res.success){showToast('Status updated: '+status,'success');closeModal('investorModal');loadInvestors();}
+  else showToast(res.message,'error');
+}
+
+async function adjustBalance(operation){
+  const amount=parseFloat(document.getElementById('balance-adjust-amount').value);
+  if(isNaN(amount))return showToast('Enter valid amount','error');
+  const res=await api('PUT',`/investor/${currentInvestorId}/balance`,{amount,operation});
+  if(res.success){showToast('Balance updated: $'+fmtAmt(res.balance),'success');closeModal('investorModal');loadInvestors();}
+  else showToast(res.message,'error');
+}
+
+// TRADERS
+async function loadTraders(){
+  const res=await api('GET','/traders');
+  const tbody=document.getElementById('traders-tbody');
+  if(!res.success||!res.traders.length){tbody.innerHTML='<tr><td colspan="8" class="no-data">No traders yet</td></tr>';return;}
+  tbody.innerHTML=res.traders.map(t=>`
+    <tr>
+      <td>${t.name}</td>
+      <td><code style="color:var(--blue);font-size:0.78rem;">${t.uid}</code></td>
+      <td><span class="badge ${t.isVerified?'badge-green':'badge-yellow'}">${t.isVerified?'Verified':'Unverified'}</span></td>
+      <td style="color:var(--gold);">$${fmtAmt(t.securityBalance)}</td>
+      <td style="color:var(--green);">$${fmtAmt(t.traderEarnings)}</td>
+      <td>${t.traderLevel||'Beginner'}</td>
+      <td><span class="badge ${t.status==='active'?'badge-green':t.status==='suspended'?'badge-yellow':'badge-red'}">${t.status}</span></td>
+      <td>
+        <div class="action-btns">
+          ${t.traderStatus==='pending_approval'?`<button class="btn btn-view" onclick="openTraderHistory('${t._id}',${JSON.stringify(t.tradingHistoryImages||[]).replace(/"/g,'&quot;')})">History</button>`:''}
+          <button class="btn btn-suspend" onclick="updateTraderStatus('${t._id}','suspended')">Suspend</button>
+          <button class="btn btn-activate" onclick="updateTraderStatus('${t._id}','active')">Activate</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openTraderHistory(id, images){
+  currentTraderId=id;
+  const el=document.getElementById('trader-history-images');
+  if(!images||!images.length){el.innerHTML='<p style="color:var(--text2)">No images uploaded</p>';
+  }else{
+    el.innerHTML=images.map(img=>`<img src="${img}" style="width:calc(50% - 5px);border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="window.open('${img}','_blank')"/>`).join('');
+  }
+  openModal('traderHistoryModal');
+}
+
+async function verifyTrader(action){
+  const res=await api('PUT',`/trader/${currentTraderId}/verify`,{action});
+  if(res.success){showToast(res.message,'success');closeModal('traderHistoryModal');loadTraders();loadApprovals();}
+  else showToast(res.message,'error');
+}
+
+async function updateTraderStatus(id,status){
+  const res=await api('PUT',`/trader/${id}/status`,{status});
+  if(res.success){showToast('Trader status updated','success');loadTraders();}
+  else showToast(res.message,'error');
+}
+
+// PENDING APPROVALS
+async function loadApprovals(){
+  const res=await api('GET','/pending-approvals');
+  const tbody=document.getElementById('approvals-tbody');
+  const vtbody=document.getElementById('verifications-tbody');
+
+  if(!res.success)return;
+
+  // Transactions
+  if(!res.transactions.length){
+    tbody.innerHTML='<tr><td colspan="8" class="no-data">No pending transactions</td></tr>';
+  }else{
+    tbody.innerHTML=res.transactions.map(t=>`
+      <tr>
+        <td>${t.userName||'-'}</td>
+        <td><code style="color:var(--blue);font-size:0.78rem;">${t.userUid||'-'}</code></td>
+        <td><span class="badge ${t.userRole==='investor'?'badge-blue':'badge-yellow'}">${t.userRole||'-'}</span></td>
+        <td><span class="badge ${t.type==='deposit'||t.type==='security_deposit'?'badge-green':'badge-red'}">${t.type}</span></td>
+        <td style="font-weight:700;">$${fmtAmt(t.amount)}</td>
+        <td style="color:var(--text2);">${t.network||'-'}</td>
+        <td style="color:var(--text2);font-size:0.8rem;">${fmt(t.createdAt)}</td>
+        <td>
+          <div class="action-btns">
+            ${t.type==='withdrawal'?`<button class="btn btn-view" onclick="showWithdrawAddr('${t.userUid}','${t.walletAddress||''}','${t.network||''}')">Address</button>`:''}
+            <button class="btn btn-approve" onclick="approveTxn('${t._id}')">Approve</button>
+            <button class="btn btn-reject" onclick="rejectTxn('${t._id}')">Reject</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Trader verifications
+  if(!res.traderVerifications.length){
+    vtbody.innerHTML='<tr><td colspan="4" class="no-data">No pending verifications</td></tr>';
+  }else{
+    vtbody.innerHTML=res.traderVerifications.map(t=>`
+      <tr>
+        <td>${t.name}</td>
+        <td><code style="color:var(--blue);font-size:0.78rem;">${t.uid}</code></td>
+        <td><span class="badge badge-yellow">Pending Review</span></td>
+        <td><button class="btn btn-view" onclick="openTraderHistory('${t._id}',${JSON.stringify(t.tradingHistoryImages||[]).replace(/"/g,'&quot;')})">View History</button></td>
+      </tr>
+    `).join('');
+  }
+}
+
+function showWithdrawAddr(uid, addr, network){
+  document.getElementById('withdraw-addr-content').innerHTML=`
+    <div class="detail-row"><span>User ID</span><code style="color:var(--blue)">${uid}</code></div>
+    <div class="detail-row"><span>Network</span><strong>${network}</strong></div>
+    <div class="detail-row"><span>Wallet Address</span></div>
+    <div style="background:rgba(5,10,25,0.8);border:1px solid var(--border);border-radius:8px;padding:12px;word-break:break-all;font-family:monospace;font-size:0.85rem;margin-top:8px;margin-bottom:14px;">${addr||'No address saved'}</div>
+    <button class="btn btn-primary" style="width:100%;" onclick="navigator.clipboard.writeText('${addr}').then(()=>showToast('Copied!','success'))">Copy Address</button>
+  `;
+  openModal('withdrawAddrModal');
+}
+
+async function approveTxn(id){
+  if(!confirm('Approve this transaction?'))return;
+  const res=await api('PUT',`/transaction/${id}/approve`);
+  if(res.success){showToast('Approved!','success');loadApprovals();loadOverview();}
+  else showToast(res.message,'error');
+}
+
+async function rejectTxn(id){
+  if(!confirm('Reject this transaction? Amount will be refunded if withdrawal.'))return;
+  const res=await api('PUT',`/transaction/${id}/reject`);
+  if(res.success){showToast('Rejected. Amount refunded if applicable.','success');loadApprovals();loadOverview();}
+  else showToast(res.message,'error');
+}
+
+// NOTIFICATIONS
+async function loadNotifications(){
+  const res=await api('GET','/notifications');
+  const el=document.getElementById('notifications-list');
+  if(!res.success||!res.notifications.length){el.innerHTML='<div class="no-data">No notifications sent yet</div>';return;}
+  el.innerHTML=res.notifications.map(n=>`
+    <div class="notif-item">
+      <div class="notif-content">
+        <h4>${n.title}</h4>
+        <p>${n.message}</p>
+        ${n.image?`<img src="${n.image}"/>`:''}
+        <div style="font-size:0.7rem;color:var(--text3);margin-top:6px;">${fmt(n.createdAt)}</div>
+      </div>
+      <button class="btn btn-reject" onclick="deleteNotification('${n._id}')">Delete</button>
+    </div>
+  `).join('');
+}
+
+async function sendNotification(){
+  const title=document.getElementById('notif-title').value.trim();
+  const message=document.getElementById('notif-message').value.trim();
+  const imageFile=document.getElementById('notif-image').files[0];
+  if(!title||!message)return showToast('Title and message required','error');
+  const fd=new FormData();
+  fd.append('title',title);fd.append('message',message);
+  if(imageFile)fd.append('image',imageFile);
+  const res=await api('POST','/notifications',fd,true);
+  if(res.success){
+    showToast('Notification sent to all investors!','success');
+    document.getElementById('notif-title').value='';
+    document.getElementById('notif-message').value='';
+    document.getElementById('notif-image').value='';
+    loadNotifications();
+  } else showToast(res.message,'error');
+}
+
+async function deleteNotification(id){
+  if(!confirm('Delete this notification?'))return;
+  const res=await api('DELETE',`/notifications/${id}`);
+  if(res.success){showToast('Deleted','success');loadNotifications();}
+  else showToast(res.message,'error');
+}
+
+// SUPPORT TICKETS
+async function loadTickets(){
+  const res=await api('GET','/support-tickets');
+  const tbody=document.getElementById('tickets-tbody');
+  const open=res.tickets?.filter(t=>t.status==='open')||[];
+  if(!open.length){tbody.innerHTML='<tr><td colspan="6" class="no-data">No open tickets</td></tr>';return;}
+  tbody.innerHTML=open.map(t=>{
+    const last=t.messages[t.messages.length-1];
+    return`<tr>
+      <td>${t.userName}</td>
+      <td><code style="color:var(--blue);font-size:0.78rem;">${t.userUid}</code></td>
+      <td><span class="badge ${t.userRole==='investor'?'badge-blue':'badge-yellow'}">${t.userRole}</span></td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2);">${last?.message||'-'}</td>
+      <td style="font-size:0.78rem;color:var(--text2);">${fmt(t.updatedAt)}</td>
+      <td><button class="btn btn-view" onclick="openChat('${t._id}','${t.userName}','${t.userUid}','${t.userRole}')">Open Chat</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openChat(id,name,uid,role){
+  currentTicketId=id;
+  document.getElementById('chat-info').innerHTML=`<strong>${name}</strong> · <code style="color:var(--blue)">${uid}</code> · <span class="badge ${role==='investor'?'badge-blue':'badge-yellow'}">${role}</span>`;
+  loadChatMessages(id);
+  openModal('chatModal');
+}
+
+async function loadChatMessages(id){
+  const res=await api('GET','/support-tickets');
+  const ticket=res.tickets?.find(t=>t._id===id);
+  const box=document.getElementById('chat-box');
+  if(!ticket||!ticket.messages.length){box.innerHTML='<div style="text-align:center;color:var(--text3);margin-top:60px;">No messages</div>';return;}
+  box.innerHTML=ticket.messages.map(m=>`
+    <div class="${m.sender==='admin'?'msg-admin':'msg-user'}">
+      <div class="msg-bubble">
+        ${m.sender==='user'?`<div style="font-size:0.68rem;color:var(--blue);margin-bottom:3px;">User</div>`:''}
+        ${m.message}
+        <div class="msg-time">${fmt(m.time)}</div>
+      </div>
+    </div>
+  `).join('');
+  box.scrollTop=box.scrollHeight;
+}
+
+async function sendAdminReply(){
+  const msg=document.getElementById('admin-reply-msg').value.trim();
+  if(!msg)return;
+  const res=await api('POST',`/support-tickets/${currentTicketId}/reply`,{message:msg});
+  if(res.success){document.getElementById('admin-reply-msg').value='';loadChatMessages(currentTicketId);}
+  else showToast(res.message,'error');
+}
+
+async function resolveTicket(){
+  if(!confirm('Mark this ticket as resolved? Chat will be reset.'))return;
+  const res=await api('PUT',`/support-tickets/${currentTicketId}/resolve`);
+  if(res.success){showToast('Ticket resolved!','success');closeModal('chatModal');loadTickets();loadOverview();}
+  else showToast(res.message,'error');
+}
+
+// ADDRESSES
+async function loadAddresses(){
+  const res=await api('GET','/wallet-address');
+  if(res.success&&res.wallet){
+    document.getElementById('addr-erc20').value=res.wallet.erc20||'';
+    document.getElementById('addr-trc20').value=res.wallet.trc20||'';
+    document.getElementById('addr-bep20').value=res.wallet.bep20||'';
+  }
+}
+
+async function saveAddresses(){
+  const res=await api('PUT','/wallet-address',{
+    erc20:document.getElementById('addr-erc20').value.trim(),
+    trc20:document.getElementById('addr-trc20').value.trim(),
+    bep20:document.getElementById('addr-bep20').value.trim()
+  });
+  if(res.success)showToast('Wallet addresses updated!','success');
+  else showToast(res.message,'error');
+}
+
+// REPORTS
+async function loadReports(){
+  const res=await api('GET','/reports');
+  const el=document.getElementById('reports-content');
+  if(!res.success)return;
+  const r=res.reports;
+  el.innerHTML=`
+    <div class="overview-grid" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-label">Total Deposit Volume</div><div class="stat-value green">$${fmtAmt(r.deposits.reduce((s,d)=>s+d.amount,0))}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Withdrawal Volume</div><div class="stat-value gold">$${fmtAmt(r.withdrawals.reduce((s,d)=>s+d.amount,0))}</div></div>
+      <div class="stat-card"><div class="stat-label">Platform Revenue (Fees)</div><div class="stat-value blue">$${fmtAmt(r.totalRevenue)}</div></div>
+    </div>
+    <div class="table-wrap"><div class="table-header"><h3>Recent Deposits</h3></div>
+      <div class="overflow-x"><table>
+        <thead><tr><th>User</th><th>Amount</th><th>Network</th><th>Date</th></tr></thead>
+        <tbody>${r.deposits.slice(0,20).map(d=>`<tr><td>${d.userName}</td><td style="color:var(--green)">$${fmtAmt(d.amount)}</td><td>${d.network}</td><td style="font-size:0.8rem;color:var(--text2)">${fmt(d.createdAt)}</td></tr>`).join('')||'<tr><td colspan="4" class="no-data">No data</td></tr>'}</tbody>
+      </table></div>
+    </div>
+    <div class="table-wrap"><div class="table-header"><h3>Recent Withdrawals</h3></div>
+      <div class="overflow-x"><table>
+        <thead><tr><th>User</th><th>Amount</th><th>Network</th><th>Date</th></tr></thead>
+        <tbody>${r.withdrawals.slice(0,20).map(d=>`<tr><td>${d.userName}</td><td style="color:var(--gold)">$${fmtAmt(d.amount)}</td><td>${d.network}</td><td style="font-size:0.8rem;color:var(--text2)">${fmt(d.createdAt)}</td></tr>`).join('')||'<tr><td colspan="4" class="no-data">No data</td></tr>'}</tbody>
+      </table></div>
+    </div>
+  `;
+}
+
+// MODAL HELPERS
+function openModal(id){document.getElementById(id).classList.add('active');}
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+</script>
+</body>
+</html>

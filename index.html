@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VANCROX — Login</title>
+  <link rel="stylesheet" href="assets/css/main.css"/>
+  <link rel="stylesheet" href="assets/css/index.css"/>
+</head>
+<body>
+  <!-- 
+    ============================================
+    INDEX PAGE - Login / Register
+    Aap yahan apna design add karein
+    Backend API already ready hai:
+    
+    Register: POST /api/auth/register
+    Body: { name, email/mobile, password, role: 'investor'/'trader' }
+    
+    Login: POST /api/auth/login
+    Body: { emailOrMobile, password }
+    
+    Login ke baad:
+    - role === 'investor' → /investor/dashboard.html
+    - role === 'trader' → /trader/dashboard.html
+    ============================================
+  -->
+
+  <div id="toast"></div>
+
+  <!-- LOGIN FORM STRUCTURE (Style aap karein) -->
+  <div id="login-page">
+    <div id="login-form-container">
+      <h1>VANCROX</h1>
+      <h2>Login</h2>
+      <div class="input-group">
+        <label>Email / Mobile</label>
+        <input type="text" id="login-identifier" placeholder="Email or Mobile"/>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Password"/>
+      </div>
+      <button class="btn-primary" onclick="handleLogin()" style="width:100%">Login</button>
+      <p style="text-align:center; margin-top:16px; color:var(--text-secondary);">
+        Don't have an account? <a href="#" onclick="showRegister()" style="color:var(--blue-light)">Register</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- REGISTER FORM STRUCTURE -->
+  <div id="register-page" style="display:none">
+    <div id="register-form-container">
+      <h1>VANCROX</h1>
+      <h2>Create Account</h2>
+
+      <!-- Role Selection -->
+      <div id="role-selection">
+        <button onclick="selectRole('investor')" id="btn-investor">Investor</button>
+        <button onclick="selectRole('trader')" id="btn-trader">Trader</button>
+      </div>
+      <input type="hidden" id="selected-role" value=""/>
+
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" id="reg-name" placeholder="Your Name"/>
+      </div>
+      <div class="input-group">
+        <label>Email or Mobile</label>
+        <input type="text" id="reg-identifier" placeholder="Email or Mobile Number"/>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Create Password"/>
+      </div>
+
+      <button class="btn-primary" onclick="handleRegister()" style="width:100%">Create Account</button>
+      <p style="text-align:center; margin-top:16px; color:var(--text-secondary);">
+        Already have an account? <a href="#" onclick="showLogin()" style="color:var(--blue-light)">Login</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="assets/js/utils.js"></script>
+  <script>
+    // Check if already logged in
+    window.onload = () => {
+      const user = getUser();
+      const token = getToken();
+      if (token && user) {
+        redirectUser(user.role);
+      }
+    };
+
+    function redirectUser(role) {
+      if (role === 'investor') window.location.href = '/investor/dashboard.html';
+      else if (role === 'trader') window.location.href = '/trader/dashboard.html';
+    }
+
+    function showRegister() {
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('register-page').style.display = 'block';
+    }
+
+    function showLogin() {
+      document.getElementById('register-page').style.display = 'none';
+      document.getElementById('login-page').style.display = 'block';
+    }
+
+    function selectRole(role) {
+      document.getElementById('selected-role').value = role;
+      document.getElementById('btn-investor').style.opacity = role === 'investor' ? '1' : '0.5';
+      document.getElementById('btn-trader').style.opacity = role === 'trader' ? '1' : '0.5';
+    }
+
+    async function handleLogin() {
+      const emailOrMobile = document.getElementById('login-identifier').value.trim();
+      const password = document.getElementById('login-password').value;
+      if (!emailOrMobile || !password) return showToast('Please fill all fields', 'error');
+
+      const res = await apiRequest('POST', '/auth/login', { emailOrMobile, password });
+      if (res.success) {
+        setAuth(res.token, res.user);
+        showToast('Login successful!', 'success');
+        setTimeout(() => redirectUser(res.user.role), 800);
+      } else {
+        showToast(res.message || 'Login failed', 'error');
+      }
+    }
+
+    async function handleRegister() {
+      const name = document.getElementById('reg-name').value.trim();
+      const identifier = document.getElementById('reg-identifier').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const role = document.getElementById('selected-role').value;
+
+      if (!name || !identifier || !password || !role) return showToast('Please fill all fields and select role', 'error');
+
+      const isEmail = identifier.includes('@');
+      const body = { name, password, role };
+      if (isEmail) body.email = identifier;
+      else body.mobile = identifier;
+
+      const res = await apiRequest('POST', '/auth/register', body);
+      if (res.success) {
+        setAuth(res.token, res.user);
+        showToast('Account created!', 'success');
+        setTimeout(() => redirectUser(res.user.role), 800);
+      } else {
+        showToast(res.message || 'Registration failed', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
